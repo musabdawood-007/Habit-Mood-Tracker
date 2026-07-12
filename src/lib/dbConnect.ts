@@ -13,7 +13,7 @@
 
 import mongoose, { Mongoose } from "mongoose";
 
-const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_URI = process.env.MONGODB_URI as string;
 
 if (!MONGODB_URI) {
   throw new Error(
@@ -38,7 +38,6 @@ export async function dbConnect(): Promise<Mongoose> {
 
   if (!cached.promise) {
     const opts: mongoose.ConnectOptions = {
-      bufferEvents: false,
       maxPoolSize: 10, // Atlas free tier allows ~100 concurrent; 10 is safe
     };
     cached.promise = mongoose.connect(MONGODB_URI, opts).then((m) => m);

@@ -58,11 +58,11 @@ async function getTopCorrelationsForUser(
     Habit.find({ userId, active: true }).lean(),
   ]);
 
-  const habitMap = new Map(habits.map((h) => [h._id.toString(), h.name]));
+  const habitMap = new Map(habits.map((h: any) => [h._id.toString(), h.name]));
 
-  return correlations
-    .filter((c: ICorrelation) => c.n >= 10 && c.pValue <= 0.1)
-    .map((c: ICorrelation) => ({
+  return (correlations as any[])
+    .filter((c: any) => c.n >= 10 && c.pValue <= 0.1)
+    .map((c: any) => ({
       habitName: habitMap.get(c.habitId.toString()) || "Unknown habit",
       targetMetric: c.targetMetric,
       lagDays: c.lagDays,
