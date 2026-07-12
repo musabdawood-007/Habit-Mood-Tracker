@@ -19,7 +19,7 @@ export default async function AppLayout({
 
   return (
     <div className="min-h-screen flex flex-col">
-      <AppNav userEmail={session.user?.email || ""} />
+      <AppNav />
       <main className="flex-1 max-w-6xl mx-auto w-full px-4 md:px-6 py-6 md:py-10">
         {children}
       </main>

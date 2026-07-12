@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { Leaf, LogOut, Settings as SettingsIcon } from "lucide-react";
+import { Leaf, LogOut, Settings as SettingsIcon, User as UserIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ThemeToggle from "@/components/ThemeToggle";
 
@@ -11,9 +11,10 @@ const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: "📊" },
   { href: "/check-in", label: "Check-in", icon: "📝" },
   { href: "/habits", label: "Habits", icon: "🎯" },
+  { href: "/account", label: "Account", icon: "👤" },
 ];
 
-export default function AppNav({ userEmail }: { userEmail: string }) {
+export default function AppNav() {
   const pathname = usePathname();
 
   return (
@@ -56,6 +57,18 @@ export default function AppNav({ userEmail }: { userEmail: string }) {
           >
             <SettingsIcon className="w-4 h-4" />
             <span className="hidden md:inline">Settings</span>
+          </Link>
+          <Link
+            href="/account"
+            className={cn(
+              "btn-ghost text-sm px-2 md:px-3 py-1.5",
+              pathname === "/account" && "bg-sage-100 dark:bg-sage-900/50"
+            )}
+            aria-label="Account"
+            title="Account"
+          >
+            <UserIcon className="w-4 h-4" />
+            <span className="hidden md:inline">Account</span>
           </Link>
           <button
             onClick={() => signOut({ callbackUrl: "/" })}
