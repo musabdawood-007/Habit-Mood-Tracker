@@ -253,7 +253,16 @@ export default async function DashboardPage() {
             </Link>
           </div>
         ) : (
-          <HabitToggleList habits={habits} initialCompleted={completedToday} todayKey={todayKey} />
+          <HabitToggleList
+            habits={habits.map((h) => ({
+              _id: h._id.toString(),
+              name: h.name,
+              color: h.color || "#7A9C6B",
+              graceDaysPerWeek: h.graceDaysPerWeek,
+            }))}
+            initialCompleted={completedToday}
+            todayKey={todayKey}
+          />
         )}
       </div>
 
