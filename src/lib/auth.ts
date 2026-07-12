@@ -157,10 +157,25 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
 
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
+      // First sign-in only (user is defined)
       if (user) {
-        // First sign-in: attach user id to token
-        token.id = (user as any).id;
+        if (account?.provider === "google") {
+          // For Google OAuth: user.id is Google's ID, not our MongoDB _id.
+          // Look up our MongoDB user by email and store THAT id.
+          await dbConnect();
+          const mongoUser = await User.findOne({
+            email: (user.email || "").toLowerCase(),
+          })
+            .select("_id")
+            .lean();
+          if (mongoUser) {
+            token.id = mongoUser._id.toString();
+          }
+        } else {
+          // For OTP credentials provider: authorize() already returns our MongoDB _id
+          token.id = (user as any).id;
+        }
       }
       return token;
     },
