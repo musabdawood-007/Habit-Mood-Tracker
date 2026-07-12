@@ -25,7 +25,7 @@
  *   We flag this with `confounderWarning: true` so the UI can show a note.
  */
 
-import { pearsonCorrelation as correlation, mean, standardDeviation } from "simple-statistics";
+import { sampleCorrelation as correlation, mean, standardDeviation } from "simple-statistics";
 import jstat from "jstat";
 
 export interface CorrelationInput {

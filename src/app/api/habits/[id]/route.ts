@@ -19,7 +19,7 @@ const UpdateSchema = z.object({
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getSession();
   const unauth = requireSession(session);
@@ -35,8 +35,9 @@ export async function PATCH(
   }
 
   await dbConnect();
+  const { id } = await params;
   const habit = await Habit.findOneAndUpdate(
-    { _id: params.id, userId: session!.id },
+    { _id: id, userId: session!.id },
     { $set: parsed.data },
     { new: true }
   ).lean();
@@ -47,15 +48,16 @@ export async function PATCH(
 
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getSession();
   const unauth = requireSession(session);
   if (unauth) return unauth;
 
   await dbConnect();
+  const { id } = await params;
   const result = await Habit.updateOne(
-    { _id: params.id, userId: session!.id },
+    { _id: id, userId: session!.id },
     { $set: { active: false } }
   );
   if (result.matchedCount === 0) {

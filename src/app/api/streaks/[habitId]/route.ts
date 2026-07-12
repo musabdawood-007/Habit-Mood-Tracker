@@ -11,7 +11,7 @@ import { getSession, requireSession } from "@/lib/session";
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { habitId: string } }
+  { params }: { params: Promise<{ habitId: string }> }
 ) {
   const session = await getSession();
   const unauth = requireSession(session);
@@ -19,8 +19,9 @@ export async function GET(
 
   await dbConnect();
 
+  const { habitId } = await params;
   const habit = await Habit.findOne({
-    _id: params.habitId,
+    _id: habitId,
     userId: session!.id,
   }).lean();
   if (!habit) return NextResponse.json({ error: "Not found" }, { status: 404 });

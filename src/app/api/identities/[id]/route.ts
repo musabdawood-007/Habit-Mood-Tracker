@@ -9,15 +9,16 @@ import { getSession, requireSession } from "@/lib/session";
 
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await getSession();
   const unauth = requireSession(session);
   if (unauth) return unauth;
 
   await dbConnect();
+  const { id } = await params;
   const result = await Identity.updateOne(
-    { _id: params.id, userId: session!.id },
+    { _id: id, userId: session!.id },
     { $set: { active: false } }
   );
   if (result.matchedCount === 0) {
