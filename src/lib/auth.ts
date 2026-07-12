@@ -1,58 +1,29 @@
 /**
  * NextAuth.js configuration — Google OAuth + custom OTP credentials provider.
  *
- * Why dual provider (per the v3 brief):
- * - OTP-only means every login is an email round-trip — friction for daily
- *   habit logging, which needs to be fast (the app's own design principle).
- * - Google OAuth gives one-tap login for returning users.
- * - NextAuth supports both providers in the same config, so we don't have to
- *   pick one auth system. The User model's `authProvider` field tracks which
- *   path each user has used; "both" means they've used both.
- *
- * How accounts merge:
- * - Both providers key off email. The OTP provider's `authorize` looks up a
- *   User by email and creates one if none exists. The Google provider does
- *   the same via the `signIn` callback.
- * - Result: a user who logs in via Google then later via OTP lands on the
- *   same account, not a duplicate.
- *
- * NextAuth + Mongoose gotchas:
- * - NextAuth expects a User with `id`, `email`, `name`, `image`. Our Mongoose
- *   User has those fields; the `jwt` and `session` callbacks attach the
- *   Mongoose `_id` as `id` on the session user.
- * - We use JWT sessions (not database sessions) — simpler, works on Vercel
- *   serverless without a DB round-trip on every request.
+ * ARCHITECTURE (fixed):
+ * - NO MongoDBAdapter — we use JWT sessions, not database sessions, so the
+ *   adapter is unnecessary AND causes conflicts with our custom signIn
+ *   callback (both try to create the user, with different schemas).
+ * - User creation happens ONLY in our callbacks (signIn for Google, authorize
+ *   for OTP), using Mongoose — so schema defaults (settings, graceDays, etc.)
+ *   are properly applied.
+ * - JWT token carries MongoDB _id, exposed on session.user.id.
  */
 
 import type { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { MongoDBAdapter } from "@auth/mongodb-adapter";
-import { MongoClient } from "mongodb";
-import bcrypt from "bcryptjs";
 
 import { User } from "@/models/User";
 import { Otp } from "@/models/Otp";
 import { dbConnect } from "@/lib/dbConnect";
 import { verifyOtp } from "@/lib/otp";
 
-const clientPromise = (async () => {
-  const uri = process.env.MONGODB_URI;
-  if (!uri) throw new Error("MONGODB_URI missing");
-  const client = new MongoClient(uri);
-  return client.connect();
-})();
-
 export const authOptions: NextAuthOptions = {
-  // adapter: MongoDBAdapter handles Google OAuth account-linking via the
-  // Account + Session collections NextAuth creates. We could skip the adapter
-  // and roll our own, but the adapter is battle-tested and saves work.
-  adapter: MongoDBAdapter(clientPromise, {
-    databaseName: process.env.MONGODB_URI?.split("/").pop()?.split("?")[0] || "habit-mood-tracker",
-  }),
-
+  // NO adapter — JWT sessions only. We handle user creation in callbacks.
   session: {
-    strategy: "jwt", // not "database" — serverless-friendly
+    strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
 
@@ -75,7 +46,6 @@ export const authOptions: NextAuthOptions = {
 
         const email = credentials.email.toLowerCase().trim();
 
-        // Find the most recent unexpired, unconsumed OTP for this email.
         const otp = await Otp.findOne({
           email,
           purpose: "login",
@@ -85,7 +55,6 @@ export const authOptions: NextAuthOptions = {
 
         if (!otp) return null;
 
-        // Brute-force protection
         if (otp.attempts >= 5) {
           await Otp.deleteOne({ _id: otp._id });
           return null;
@@ -97,7 +66,6 @@ export const authOptions: NextAuthOptions = {
         const valid = await verifyOtp(credentials.code, otp.codeHash);
         if (!valid) return null;
 
-        // Mark consumed
         otp.consumedAt = new Date();
         await otp.save();
 
@@ -131,12 +99,14 @@ export const authOptions: NextAuthOptions = {
 
   callbacks: {
     async signIn({ user, account }) {
+      // For Google OAuth: ensure user exists in our MongoDB
       if (account?.provider === "google" && user.email) {
         await dbConnect();
-        const existing = await User.findOne({ email: user.email.toLowerCase() });
+        const email = user.email.toLowerCase();
+        const existing = await User.findOne({ email });
         if (!existing) {
           await User.create({
-            email: user.email.toLowerCase(),
+            email,
             name: user.name || null,
             image: user.image || null,
             authProvider: "google",
@@ -158,10 +128,10 @@ export const authOptions: NextAuthOptions = {
     },
 
     async jwt({ token, user, account }) {
-      // First sign-in only (user is defined)
+      // First sign-in only (user object is defined)
       if (user) {
         if (account?.provider === "google") {
-          // For Google OAuth: user.id is Google's ID, not our MongoDB _id.
+          // Google OAuth: user.id is Google's ID, not MongoDB _id.
           // Look up our MongoDB user by email and store THAT id.
           await dbConnect();
           const mongoUser = await User.findOne({
@@ -171,9 +141,25 @@ export const authOptions: NextAuthOptions = {
             .lean();
           if (mongoUser) {
             token.id = mongoUser._id.toString();
+          } else {
+            // Fallback: create user if somehow missing (shouldn't happen
+            // because signIn callback runs first, but defensive)
+            const newUser = await User.create({
+              email: (user.email || "").toLowerCase(),
+              name: user.name || null,
+              image: user.image || null,
+              authProvider: "google",
+              settings: {
+                graceDaysPerWeek: 1,
+                frictionLevel: "low",
+                theme: "system",
+                notificationsEnabled: false,
+              },
+            });
+            token.id = newUser._id.toString();
           }
         } else {
-          // For OTP credentials provider: authorize() already returns our MongoDB _id
+          // OTP credentials provider: authorize() already returns MongoDB _id
           token.id = (user as any).id;
         }
       }
@@ -190,6 +176,5 @@ export const authOptions: NextAuthOptions = {
 
   pages: {
     signIn: "/login",
-    // We don't override error pages — NextAuth defaults are fine.
   },
 };
