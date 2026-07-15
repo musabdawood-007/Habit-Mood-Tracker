@@ -260,49 +260,26 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Musab Projects banner */}
-      <section className="py-12 border-t border-sage-100 dark:border-sage-800/50 bg-sage-50/50 dark:bg-bg-dark/30">
-        <div className="max-w-3xl mx-auto px-6 text-center">
-          <p className="text-xs uppercase tracking-[0.2em] text-ink-muted dark:text-sage-300/70 mb-2">
-            Built by
-          </p>
-          <h3 className="text-xl font-semibold mb-2">Musab Projects</h3>
-          <p className="text-sm text-ink-muted dark:text-sage-300/80 mb-4">
-            A project group by{" "}
-            <a
-              href="https://musab-007.netlify.app"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sage-600 dark:text-sage-300 hover:underline font-medium"
-            >
-              Musab Dawood ↗
-            </a>
-          </p>
-          <a
-            href="https://musab-007.netlify.app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-ghost text-sm"
-          >
-            View portfolio →
-          </a>
-        </div>
-      </section>
-
-      <footer className="border-t border-sage-100 dark:border-sage-800/50 py-6 text-center text-sm text-ink-muted dark:text-sage-300/70">
-        <p>
+      <footer className="border-t border-sage-100 dark:border-sage-800/50 py-8 text-center">
+        <p className="text-sm text-ink-muted dark:text-sage-300/70 mb-3">
           Built by{" "}
-          <a
-            href="https://musab-007.netlify.app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sage-600 dark:text-sage-300 hover:underline font-medium"
-          >
+          <span className="inline-flex items-center gap-2 font-medium text-ink dark:text-bg">
             Musab Projects
-          </a>{" "}
-          · A project group by Musab Dawood
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wide bg-sun-100 dark:bg-sun-500/10 text-sun-700 dark:text-sun-400 font-semibold">
+              Coming soon
+            </span>
+          </span>
+          {" · "}a project group by Musab Dawood
         </p>
-        <p className="text-xs mt-1 opacity-70">Next.js + MongoDB · {new Date().getFullYear()}</p>
+        <a
+          href="https://musab-007.netlify.app"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 text-sm text-sage-600 dark:text-sage-300 hover:underline font-medium"
+        >
+          Learn more
+          <span aria-hidden="true">→</span>
+        </a>
       </footer>
     </main>
   );
