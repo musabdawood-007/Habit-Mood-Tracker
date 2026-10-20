@@ -259,28 +259,28 @@ export default async function HomePage() {
           </Link>
         </div>
       </section>
-
       <footer className="border-t border-sage-100 dark:border-sage-800/50 py-8 text-center">
         <p className="text-sm text-ink-muted dark:text-sage-300/70 mb-3">
-          Built by{" "}
-          <span className="inline-flex items-center gap-2 font-medium text-ink dark:text-bg">
-            Musab Projects
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wide bg-sun-100 dark:bg-sun-500/10 text-sun-700 dark:text-sun-400 font-semibold">
-              Coming soon
-            </span>
-          </span>
-          {" · "}a project group by Musab Dawood
-        </p>
-        <a
-          href="https://musab-007.netlify.app"
+         Built by{" "}
+       <a
+          href="https://musab-projects.vercel.app/projects"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-sm text-sage-600 dark:text-sage-300 hover:underline font-medium"
-        >
-          Learn more
-          <span aria-hidden="true">→</span>
-        </a>
-      </footer>
+          className="inline-flex items-center gap-2 font-medium text-ink dark:text-bg hover:underline"
+          >
+        Musab Projects
+       </a>
+  </p>
+  <a
+    href="https://musab-007.netlify.app"
+    target="_blank"
+    rel="noopener noreferrer"
+    className="inline-flex items-center gap-1.5 text-sm text-sage-600 dark:text-sage-300 hover:underline font-medium"
+  >
+    Learn more
+    <span aria-hidden="true">→</span>
+  </a>
+</footer>
     </main>
   );
 }
